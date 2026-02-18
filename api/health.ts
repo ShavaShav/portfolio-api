@@ -1,13 +1,22 @@
-﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-function setCorsHeaders(response: VercelResponse) {
-  response.setHeader("Access-Control-Allow-Origin", "https://zachshaver.com");
+const ALLOWED_ORIGINS = [
+  "https://zachshaver.com",
+  "http://localhost:5173",
+  "http://localhost:4173",
+];
+
+function setCorsHeaders(request: VercelRequest, response: VercelResponse) {
+  const origin = request.headers.origin ?? "";
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    response.setHeader("Access-Control-Allow-Origin", origin);
+  }
   response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
 export default function handler(request: VercelRequest, response: VercelResponse) {
-  setCorsHeaders(response);
+  setCorsHeaders(request, response);
 
   if (request.method === "OPTIONS") {
     response.status(204).end();
