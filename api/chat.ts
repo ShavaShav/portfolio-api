@@ -25,6 +25,33 @@ function setCorsHeaders(request: VercelRequest, response: VercelResponse) {
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
+/**
+ * Resolves the AI provider configuration from environment variables.
+ *
+ * To use OpenRouter (recommended free option):
+ *   AI_BASE_URL=https://openrouter.ai/api/v1
+ *   AI_API_KEY=<your openrouter key>
+ *   AI_MODEL=google/gemma-3-27b-it:free   (or any free model on openrouter.ai/models?q=:free)
+ *
+ * To use HuggingFace inference:
+ *   AI_BASE_URL=https://router.huggingface.co/v1
+ *   AI_API_KEY=<your HF token>
+ *   AI_MODEL=meta-llama/Llama-3.3-70B-Instruct
+ *
+ * To keep OpenAI (original):
+ *   AI_API_KEY=<your openai key>   (or OPENAI_API_KEY)
+ *   AI_MODEL=gpt-4o-mini           (or omit to use default)
+ */
+function getAIClient() {
+  const baseURL = process.env.AI_BASE_URL; // undefined = OpenAI default
+  const apiKey =
+    process.env.AI_API_KEY ?? process.env.OPENAI_API_KEY ?? "";
+  const model = process.env.AI_MODEL ?? "gpt-4o-mini";
+
+  const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) });
+  return { client, model };
+}
+
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
@@ -48,18 +75,21 @@ export default async function handler(
     return;
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    response.status(500).json({ error: "OPENAI_API_KEY is not configured" });
+  const apiKey = process.env.AI_API_KEY ?? process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    response
+      .status(500)
+      .json({ error: "AI_API_KEY (or OPENAI_API_KEY) is not configured" });
     return;
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const { client, model } = getAIClient();
 
   try {
     const systemPrompt = await retrievePromptContext(message, scenarioContext);
 
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const stream = await client.chat.completions.create({
+      model,
       stream: true,
       messages: [
         {

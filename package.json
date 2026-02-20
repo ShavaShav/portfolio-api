@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx dev-server.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "precompute": "tsx scripts/precompute-embeddings.ts"
   },
   "dependencies": {
     "dotenv": "^17.3.1",

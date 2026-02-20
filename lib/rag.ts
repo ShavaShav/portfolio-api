@@ -1,15 +1,11 @@
-﻿import { initializeEmbeddings, searchRelevantChunks } from "./embeddings.js";
-import { loadAndChunkDocuments } from "./documents.js";
+import { initializeEmbeddings, searchRelevantChunks } from "./embeddings.js";
 import { buildSystemPrompt } from "./prompts.js";
 
 let warmPromise: Promise<void> | null = null;
 
 async function warmStore() {
   if (!warmPromise) {
-    warmPromise = (async () => {
-      const chunks = await loadAndChunkDocuments();
-      await initializeEmbeddings(chunks);
-    })();
+    warmPromise = initializeEmbeddings();
   }
 
   await warmPromise;
