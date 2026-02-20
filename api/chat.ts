@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 import OpenAI from "openai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { retrievePromptContext } from "../lib/rag.js";
@@ -13,8 +15,6 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "http://localhost:4173",
 ];
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function setCorsHeaders(request: VercelRequest, response: VercelResponse) {
   const origin = request.headers.origin ?? "";
@@ -52,6 +52,8 @@ export default async function handler(
     response.status(500).json({ error: "OPENAI_API_KEY is not configured" });
     return;
   }
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   try {
     const systemPrompt = await retrievePromptContext(message, scenarioContext);

@@ -1,7 +1,9 @@
 ﻿import OpenAI from "openai";
 import type { DocumentChunk } from "./documents.js";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 export type EmbeddedChunk = DocumentChunk & {
   embedding: number[];
@@ -41,7 +43,7 @@ export async function initializeEmbeddings(chunks: DocumentChunk[]) {
     return;
   }
 
-  const response = await openai.embeddings.create({
+  const response = await getOpenAI().embeddings.create({
     model: "text-embedding-3-small",
     input: chunks.map((chunk) => chunk.content),
   });
@@ -55,7 +57,7 @@ export async function initializeEmbeddings(chunks: DocumentChunk[]) {
 }
 
 export async function embedQuery(query: string) {
-  const response = await openai.embeddings.create({
+  const response = await getOpenAI().embeddings.create({
     model: "text-embedding-3-small",
     input: query,
   });
