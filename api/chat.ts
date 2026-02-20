@@ -4,10 +4,19 @@ import OpenAI from "openai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { retrievePromptContext } from "../lib/rag.js";
 
+type CompanionContext = {
+  mode: "standby" | "active" | "copilot";
+  currentPlanetId?: string;
+  currentPlanetLabel?: string;
+  visitedPlanetLabels?: string[];
+  missionTitle?: string;
+  scenarioContext?: string;
+};
+
 type ChatBody = {
   message?: string;
   sessionId?: string;
-  scenarioContext?: string;
+  companionContext?: CompanionContext;
 };
 
 const ALLOWED_ORIGINS = [
@@ -68,7 +77,7 @@ export default async function handler(
     return;
   }
 
-  const { message, sessionId, scenarioContext } = request.body as ChatBody;
+  const { message, sessionId, companionContext } = request.body as ChatBody;
 
   if (!message) {
     response.status(400).json({ error: "Missing message" });
@@ -86,7 +95,7 @@ export default async function handler(
   const { client, model } = getAIClient();
 
   try {
-    const systemPrompt = await retrievePromptContext(message, scenarioContext);
+    const systemPrompt = await retrievePromptContext(message, companionContext);
 
     const stream = await client.chat.completions.create({
       model,

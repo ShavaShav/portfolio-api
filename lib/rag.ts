@@ -1,5 +1,5 @@
 import { initializeEmbeddings, searchRelevantChunks } from "./embeddings.js";
-import { buildSystemPrompt } from "./prompts.js";
+import { buildSystemPrompt, type CompanionContext } from "./prompts.js";
 
 let warmPromise: Promise<void> | null = null;
 
@@ -13,10 +13,10 @@ async function warmStore() {
 
 export async function retrievePromptContext(
   message: string,
-  scenarioContext?: string,
+  companionContext?: CompanionContext,
 ) {
   await warmStore();
 
   const chunks = await searchRelevantChunks(message, 6);
-  return buildSystemPrompt(chunks, scenarioContext);
+  return buildSystemPrompt(chunks, companionContext);
 }
