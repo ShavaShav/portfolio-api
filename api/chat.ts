@@ -3,6 +3,7 @@ dotenv.config({ path: ".env.local" });
 import OpenAI from "openai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { retrievePromptContext } from "../lib/rag.js";
+import { setCorsHeaders } from "../lib/cors.js";
 
 type CompanionContext = {
   mode: "standby" | "active" | "copilot";
@@ -19,20 +20,6 @@ type ChatBody = {
   companionContext?: CompanionContext;
 };
 
-const ALLOWED_ORIGINS = [
-  "https://zachshaver.com",
-  "http://localhost:5173",
-  "http://localhost:4173",
-];
-
-function setCorsHeaders(request: VercelRequest, response: VercelResponse) {
-  const origin = request.headers.origin ?? "";
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    response.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
 
 /**
  * Resolves the AI provider configuration from environment variables.
